@@ -8,7 +8,7 @@ const PORT = 4001; // Usa a variável de ambiente PORT ou 3000 como padrão
 // Middleware
 app.use(bodyParser.json());
 
-mongoose.connect("mongodb://admin:123456@10.0.30.121:27017/dbkaio", {
+mongoose.connect("mongodb://localhost:27017/dbaws", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
