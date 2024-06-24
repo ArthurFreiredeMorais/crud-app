@@ -1,6 +1,8 @@
 import telnetlib
 
+# Função para realizar a conexão Telnet e processar os comandos
 def telnet_connect(host):
+    tn = None  # Inicializa tn como None inicialmente
     try:
         # Conectando ao host via Telnet
         tn = telnetlib.Telnet(host)
@@ -24,15 +26,15 @@ def telnet_connect(host):
             print(tn.read_until(b"\n").decode('ascii').strip())
 
     except Exception as e:
-        print("Erro ao conectar via Telnet:", e)
+        print(f"Erro ao conectar via Telnet: {e}")
 
     finally:
-        # Fecha a conexão Telnet ao sair do loop
-        tn.close()
+        # Fecha a conexão Telnet se tn não for None
+        if tn:
+            tn.close()
 
+# Substitua 'example.com' pelo endereço IP ou hostname da sua EC2
 host = '10.0.30.106'
 
-
+# Chamando a função para iniciar a conexão Telnet
 telnet_connect(host)
-
- 
