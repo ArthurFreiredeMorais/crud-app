@@ -34,7 +34,7 @@ def telnet_connect(host):
             tn.close()
 
 # Substitua 'example.com' pelo endereço IP ou hostname da sua EC2
-host = '10.0.30.106'
+host = '10.0.30.121'
 
 # Chamando a função para iniciar a conexão Telnet
 telnet_connect(host)
