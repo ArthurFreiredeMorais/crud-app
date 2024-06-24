@@ -1,17 +1,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-require('dotenv').config(); // Carrega as variáveis de ambiente do arquivo .env
 
 const app = express();
-const PORT = process.env.PORT || 4001; // Usa a variável de ambiente PORT ou 3000 como padrão
+const PORT = 4001; // Usa a variável de ambiente PORT ou 3000 como padrão
 
 // Middleware
 app.use(bodyParser.json());
 
-console.log('Mongo URI:', process.env.MONGO_URI); // Adicione esta linha logo antes da conexão com o MongoDB
-// MongoDB Connection usando a variável de ambiente
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect("mongodb://admin:123456@10.0.30.121:27017/dbkaio", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
