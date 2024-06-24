@@ -1,93 +1,91 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-
+const fs = require('fs').promises;
 const app = express();
-const PORT = 4001; // Usa a variável de ambiente PORT ou 3000 como padrão
+const PORT = 4001;
 
-// Middleware
 app.use(bodyParser.json());
 
-mongoose.connect("mongodb://localhost:27017/dbaws", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', function () {
-  console.log('Connected to MongoDB');
-});
-
-// Define a Mongoose Schema
-const Schema = mongoose.Schema;
-const itemSchema = new Schema({
-  name: String,
-  description: String,
-});
-const Item = mongoose.model('Item', itemSchema);
-
-// CRUD Routes
-// Create
-app.post('/items', async (req, res) => {
-  try {
-    const newItem = new Item(req.body);
-    await newItem.save();
-    res.status(201).json(newItem);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
-});
-
-// Read all
+// Rota para listar todos os itens
 app.get('/items', async (req, res) => {
-  try {
-    const items = await Item.find();
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    try {
+        const data = await fs.readFile('data.json');
+        const items = JSON.parse(data);
+        res.json(items);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erro ao buscar itens.' });
+    }
 });
 
-// Read one
+// Rota para buscar um item por ID
 app.get('/items/:id', async (req, res) => {
-  try {
-    const item = await Item.findById(req.params.id);
-    if (!item) {
-      return res.status(404).json({ message: 'Item not found' });
+    try {
+        const data = await fs.readFile('data.json');
+        const items = JSON.parse(data);
+        const item = items.find(item => item.id === parseInt(req.params.id));
+        if (!item) {
+            return res.status(404).json({ message: 'Item não encontrado.' });
+        }
+        res.json(item);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erro ao buscar o item.' });
     }
-    res.json(item);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
 });
 
-// Update
+// Rota para adicionar um novo item
+app.post('/items', async (req, res) => {
+    try {
+        const data = await fs.readFile('data.json');
+        const items = JSON.parse(data);
+        const newItem = { id: items.length + 1, ...req.body };
+        items.push(newItem);
+        await fs.writeFile('data.json', JSON.stringify(items, null, 2));
+        res.status(201).json(newItem);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erro ao adicionar o item.' });
+    }
+});
+
+// Rota para atualizar um item por ID
 app.put('/items/:id', async (req, res) => {
-  try {
-    const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedItem) {
-      return res.status(404).json({ message: 'Item not found' });
+    try {
+        const data = await fs.readFile('data.json');
+        let items = JSON.parse(data);
+        const index = items.findIndex(item => item.id === parseInt(req.params.id));
+        if (index === -1) {
+            return res.status(404).json({ message: 'Item não encontrado.' });
+        }
+        items[index] = { id: parseInt(req.params.id), ...req.body };
+        await fs.writeFile('data.json', JSON.stringify(items, null, 2));
+        res.json(items[index]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erro ao atualizar o item.' });
     }
-    res.json(updatedItem);
-  } catch (err) {
-    res.status(400).json({ message: err.message });
-  }
 });
 
-// Delete
+// Rota para deletar um item por ID
 app.delete('/items/:id', async (req, res) => {
-  try {
-    const deletedItem = await Item.findByIdAndDelete(req.params.id);
-    if (!deletedItem) {
-      return res.status(404).json({ message: 'Item not found' });
+    try {
+        const data = await fs.readFile('data.json');
+        let items = JSON.parse(data);
+        const index = items.findIndex(item => item.id === parseInt(req.params.id));
+        if (index === -1) {
+            return res.status(404).json({ message: 'Item não encontrado.' });
+        }
+        const deletedItem = items.splice(index, 1);
+        await fs.writeFile('data.json', JSON.stringify(items, null, 2));
+        res.json({ message: 'Item deletado.', deletedItem });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Erro ao deletar o item.' });
     }
-    res.json({ message: 'Item deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
 });
 
 // Start Server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`server running on port ${PORT}`);
 });
