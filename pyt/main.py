@@ -1,40 +1,41 @@
-import telnetlib
+import socket
 
-# Função para realizar a conexão Telnet e processar os comandos
-def telnet_connect(host):
-    tn = None  # Inicializa tn como None inicialmente
-    try:
-        # Conectando ao host via Telnet
-        tn = telnetlib.Telnet(host)
+# Configurações do servidor
+HOST = '10.0.30.121'   # Escuta em todas as interfaces disponíveis
+PORT = 23       # Número da porta arbitrário
 
-        # Loop para receber comandos e enviar respostas
-        while True:
-            command = input("Digite um comando (1 ou 2 para testar): ")
+# Criação do socket
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-            # Verifica o comando digitado
-            if command == '1':
-                print("Enviando comando: 1")
-                tn.write(b"1\n")
-            elif command == '2':
-                print("Enviando comando: 2")
-                tn.write(b"2\n")
-            else:
-                print("Comando inválido. Digite 1 ou 2.")
+# Liga o socket ao endereço e porta especificados
+server_socket.bind((HOST, PORT))
 
-            # Lê a resposta do servidor Telnet
-            print("Resposta do servidor:")
-            print(tn.read_until(b"\n").decode('ascii').strip())
+# Começa a escutar por conexões entrantes
+server_socket.listen()
 
-    except Exception as e:
-        print(f"Erro ao conectar via Telnet: {e}")
+print(f"Servidor socket escutando em {HOST}:{PORT}")
 
-    finally:
-        # Fecha a conexão Telnet se tn não for None
-        if tn:
-            tn.close()
-
-# Substitua 'example.com' pelo endereço IP ou hostname da sua EC2
-host = '10.0.30.121'
-
-# Chamando a função para iniciar a conexão Telnet
-telnet_connect(host)
+# Loop principal para aceitar conexões entrantes
+while True:
+    # Aceita a conexão entrante
+    client_socket, client_address = server_socket.accept()
+    
+    print(f"Conexão recebida de {client_address}")
+    
+    # Loop para receber e repetir mensagens
+    while True:
+        # Recebe os dados do cliente
+        data = client_socket.recv(1024)
+        
+        if not data:
+            # Se não houver mais dados, fecha a conexão com o cliente
+            print(f"Conexão fechada por {client_address}")
+            client_socket.close()
+            break
+        
+        # Decodifica os dados recebidos e exibe
+        received_message = data.decode()
+        print(f"Recebido: {received_message}")
+        
+        # Envia de volta os dados recebidos para o cliente
+        client_socket.sendall(data)
