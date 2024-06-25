@@ -1,7 +1,7 @@
 import socket
 
 # Configurações do servidor
-HOST = '10.0.30.121'   # Escuta em todas as interfaces disponíveis
+HOST = '0.0.0.0'   # Escuta em todas as interfaces disponíveis
 PORT = 23       # Número da porta arbitrário
 
 # Criação do socket
